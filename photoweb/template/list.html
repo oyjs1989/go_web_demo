@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>List</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+    <ol>
+        {{range $.images}}
+            <li>
+                <a href="/view?id={{.|urlquery}}">{{.|html}}</a>
+                <a onclick="del({{.|print}})">删除</a>
+            </li>
+        {{end}}
+    </ol>
+
+</body>
+
+<script>
+
+    function del(imgName) {
+        if(imgName == "") {
+            console.log("图片名称不能为空");
+            return;
+        }
+        console.log(imgName)
+        var data = {
+            name: imgName
+        };
+
+        $.get('/del', {
+            name: imgName
+        }, function(data) {
+            console.log(data)
+        })
+    }
+
+</script>
+</html>
