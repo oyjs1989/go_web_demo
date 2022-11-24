@@ -13,11 +13,10 @@ import (
 )
 
 const (
-	UPLOAD_DIR = "./uploads"
+	UPLOAD_DIR   = "./photo"
 	TEMPLATE_DIR = "./template"
-	HOST_ADDR = ":8090"
+	HOST_ADDR    = ":8090"
 )
-
 
 var templates = make(map[string]*template.Template)
 
@@ -31,12 +30,11 @@ func init() {
 			continue
 		}
 		temPath = TEMPLATE_DIR + "/" + temName
-		log.Println("Loading template:", temPath)
+		log.Println("Loading Template:", temPath)
 		t := template.Must(template.ParseFiles(temPath))
 		templates[temName] = t
 	}
 }
-
 
 func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +50,7 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 }
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
-	fileInfoArr, err := ioutil.ReadDir("./uploads")
+	fileInfoArr, err := ioutil.ReadDir(UPLOAD_DIR)
 	//checkError(err, w)
 	//var listHtml string
 	check(err)
@@ -67,10 +65,9 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	renderHtml(w, "list.html", locals)
 	//checkError(err, w)
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
-
-
 }
-func  uploadHandler(w http.ResponseWriter, r *http.Request) {
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		renderHtml(w, "upload.html", nil)
 	}
@@ -88,10 +85,9 @@ func  uploadHandler(w http.ResponseWriter, r *http.Request) {
 		_, err = io.Copy(t, f)
 		check(err)
 
-		http.Redirect(w, r, "/view?id=" + filename, http.StatusFound)
+		http.Redirect(w, r, "/view?id="+filename, http.StatusFound)
 	}
 }
-
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	imageId := r.FormValue("id")
@@ -106,21 +102,20 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, imagePath)
 }
 
-
 func deleteHandler(w http.ResponseWriter, r *http.Request) {
 
-		name := r.FormValue("name")
-		fmt.Println("Will delete: ", UPLOAD_DIR + "/" + name)
+	name := r.FormValue("name")
+	fmt.Println("Will delete: ", UPLOAD_DIR+"/"+name)
 
-		pathName := UPLOAD_DIR + "/" + name
-		_, err := PathExists(pathName)
+	pathName := UPLOAD_DIR + "/" + name
+	_, err := PathExists(pathName)
+	check(err)
+
+	if err := os.Remove(pathName); err != nil {
 		check(err)
-
-		if err := os.Remove(pathName); err != nil {
-			check(err)
-		}
-		fmt.Println("delete success!")
-		http.Redirect(w, r, "/", http.StatusFound)
+	}
+	fmt.Println("delete success!")
+	http.Redirect(w, r, "/", http.StatusFound)
 
 }
 
@@ -134,7 +129,6 @@ func PathExists(path string) (bool, error) {
 	}
 	return false, err
 }
-
 
 func renderHtml(w http.ResponseWriter, tmpl string, locals map[string]interface{}) error {
 	//t, err := template.ParseFiles("template/" + tmpl + ".html")
@@ -167,9 +161,7 @@ func checkError(err error, w http.ResponseWriter) {
 func check(err error) {
 	if err != nil {
 		panic(err)
-		panic(err)
 	}
-
 }
 
 func main() {
