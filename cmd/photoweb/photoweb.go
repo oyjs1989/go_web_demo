@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"html/template"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path"
 	"runtime/debug"
+	"strings"
 )
 
 const (
@@ -56,12 +58,34 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	check(err)
 	locals := make(map[string]interface{})
 	images := []string{}
+	logs := []string{}
 	for _, fileInfo := range fileInfoArr {
-		images = append(images, fileInfo.Name())
-		//imgId := fileInfo.Name()
-		//listHtml += "<li><a href=\"/view?id="+imgId+"\">"+imgId+"</a></li>"
+		result := ""
+		fmt.Println(fileInfo)
+		if strings.Contains(fileInfo.Name(), "jpg") {
+			images = append(images, fileInfo.Name())
+		}
+		if strings.Contains(fileInfo.Name(), "log") {
+			file, err := os.Open(UPLOAD_DIR + "/" + fileInfo.Name())
+			if err != nil {
+				fmt.Println("文件打开失败 = ", err)
+				continue
+			}
+			defer file.Close()              // 关闭文本流
+			reader := bufio.NewReader(file) // 读取文本数据
+			for {
+				str, err := reader.ReadString('\n')
+				if err == io.EOF {
+					break
+				}
+				result += str
+			}
+			logs = append(logs, result)
+		}
+
 	}
 	locals["images"] = images
+	locals["logs"] = logs
 	renderHtml(w, "list.html", locals)
 	//checkError(err, w)
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
@@ -165,7 +189,7 @@ func check(err error) {
 }
 
 func main() {
-	fmt.Println("test main")
+	fmt.Println("run go web server")
 	http.HandleFunc("/", safeHandler(listHandler))
 	http.HandleFunc("/del", safeHandler(deleteHandler))
 	http.HandleFunc("/view", safeHandler(viewHandler))

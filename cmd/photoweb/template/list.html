@@ -10,8 +10,12 @@
         {{range $.images}}
             <li>
                 <img src="/view?id={{.|urlquery}}" width="200px" height="100px"></img>
-                <!-- <a href="/view?id={{.|urlquery}}">{{.|html}}</a> -->
             </li>
+        {{end}}
+        {{range $.logs}}
+        <li>
+            <p>{{.|urlquery}}<p>
+        </li>
         {{end}}
     </ol>
 
