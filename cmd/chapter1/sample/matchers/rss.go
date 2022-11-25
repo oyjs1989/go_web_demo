@@ -1,17 +1,13 @@
 package matchers
 
-
 import (
 	"encoding/xml"
-	"error"
 	"fmt"
 	"log"
 	"net/http"
 	"regexp"
-
 	// "github.com/goinaction/code/chapter2/sample/search"
 )
-
 
 type (
 	// item defines the fields associated with the item tag
