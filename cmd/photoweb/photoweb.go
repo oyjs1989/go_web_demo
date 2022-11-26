@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -21,6 +21,17 @@ const (
 )
 
 var templates = make(map[string]*template.Template)
+
+type Result struct {
+	Code      int    `json:"code"`
+	Message   string `json:"message"`
+	Timestamp int    `json:"timestamp"`
+	Data      []struct {
+		Prob  float64 `json:"prob"`
+		Label string  `json:"label"`
+	} `json:"data"`
+	ExecTime float64 `json:"exec_time"`
+}
 
 func init() {
 	fileInfoArr, err := ioutil.ReadDir(TEMPLATE_DIR)
@@ -58,10 +69,8 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	check(err)
 	locals := make(map[string]interface{})
 	images := []string{}
-	logs := []string{}
+	var logs []Result
 	for _, fileInfo := range fileInfoArr {
-		result := ""
-		fmt.Println(fileInfo)
 		if strings.Contains(fileInfo.Name(), "jpg") {
 			images = append(images, fileInfo.Name())
 		}
@@ -71,16 +80,18 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("文件打开失败 = ", err)
 				continue
 			}
-			defer file.Close()              // 关闭文本流
-			reader := bufio.NewReader(file) // 读取文本数据
-			for {
-				str, err := reader.ReadString('\n')
-				if err == io.EOF {
-					break
-				}
-				result += str
+			defer file.Close() // 关闭文本流
+			var info Result
+			// 创建json解码器
+			decoder := json.NewDecoder(file)
+			err = decoder.Decode(&info)
+			if err != nil {
+				fmt.Println("解码失败", err.Error())
+			} else {
+				fmt.Println("解码成功")
+				fmt.Println(info)
+				logs = append(logs, info)
 			}
-			logs = append(logs, result)
 		}
 
 	}

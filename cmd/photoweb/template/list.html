@@ -14,7 +14,7 @@
         {{end}}
         {{range $.logs}}
         <li>
-            <p>{{.|urlquery}}<p>
+            <p id="result.json">{{.|html}}<p>
         </li>
         {{end}}
     </ol>
@@ -22,6 +22,10 @@
 </body>
 
 <script>
+    var text = document.getElementById('result.json').innerText; //获取json格式内容
+    var result = JSON.stringify(JSON.parse(text), null, 2);//将字符串转换成json对象
+    
+    document.getElementById('out_pre').innerText= result ;
 
     function del(imgName) {
         if(imgName == "") {
@@ -41,4 +45,6 @@
     }
 
 </script>
+
+
 </html>
