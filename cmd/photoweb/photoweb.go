@@ -15,12 +15,17 @@ import (
 )
 
 const (
-	UPLOAD_DIR   = "./photo"
-	TEMPLATE_DIR = "./template"
-	HOST_ADDR    = ":8090"
+	UPLOAD_DIR    = "image"
+	TEMPLATE_DIR  = "./template"
+	HOST_ADDR     = ":8090"
+	PROJECT_DIR   = "/project"
+	AIPOCKET_NAME = "aipocket_new"
 )
 
+type INFO map[string]interface{}
+
 var templates = make(map[string]*template.Template)
+var imageDirs = make(map[string]string)
 
 type Result struct {
 	Code      int    `json:"code"`
@@ -33,7 +38,21 @@ type Result struct {
 	ExecTime float64 `json:"exec_time"`
 }
 
-func init() {
+func getDir() {
+	fileInfoArr, err := ioutil.ReadDir(PROJECT_DIR)
+	check(err)
+	var temName, temPath string
+	for _, fileInfo := range fileInfoArr {
+		temName = fileInfo.Name()
+		if !strings.Contains(temName, AIPOCKET_NAME) {
+			continue
+		}
+		temPath = PROJECT_DIR + "/" + temName + UPLOAD_DIR
+		imageDirs[temName] = temPath
+	}
+}
+
+func getTemplate() {
 	fileInfoArr, err := ioutil.ReadDir(TEMPLATE_DIR)
 	check(err)
 	var temName, temPath string
@@ -47,6 +66,11 @@ func init() {
 		t := template.Must(template.ParseFiles(temPath))
 		templates[temName] = t
 	}
+}
+
+func init() {
+	getTemplate()
+	getDir()
 }
 
 func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
@@ -63,40 +87,51 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 }
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
-	fileInfoArr, err := ioutil.ReadDir(UPLOAD_DIR)
-	//checkError(err, w)
-	//var listHtml string
-	check(err)
-	locals := make(map[string]interface{})
-	images := []string{}
-	var logs []Result
-	for _, fileInfo := range fileInfoArr {
-		if strings.Contains(fileInfo.Name(), "jpg") {
-			images = append(images, fileInfo.Name())
-		}
-		if strings.Contains(fileInfo.Name(), "log") {
-			file, err := os.Open(UPLOAD_DIR + "/" + fileInfo.Name())
-			if err != nil {
-				fmt.Println("文件打开失败 = ", err)
+	locals := make(INFO)
+	for dir, path := range imageDirs {
+		var eachList []INFO
+		fileInfoArr, err := ioutil.ReadDir(path)
+		//checkError(err, w)
+		//var listHtml string
+		check(err)
+		for _, eachDir := range fileInfoArr {
+			if !IsDir(eachDir.Name()) {
 				continue
 			}
-			defer file.Close() // 关闭文本流
-			var info Result
-			// 创建json解码器
-			decoder := json.NewDecoder(file)
-			err = decoder.Decode(&info)
-			if err != nil {
-				fmt.Println("解码失败", err.Error())
-			} else {
-				fmt.Println("解码成功")
-				fmt.Println(info)
-				logs = append(logs, info)
+			dir_infos := make(INFO)
+			images := []string{}
+			var logs []Result
+			for _, fileInfo := range fileInfoArr {
+				if strings.Contains(fileInfo.Name(), "jpg") {
+					images = append(images, fileInfo.Name())
+				}
+				if strings.Contains(fileInfo.Name(), "log") {
+					file, err := os.Open(UPLOAD_DIR + "/" + fileInfo.Name())
+					if err != nil {
+						fmt.Println("文件打开失败 = ", err)
+						continue
+					}
+					defer file.Close() // 关闭文本流
+					var info Result
+					// 创建json解码器
+					decoder := json.NewDecoder(file)
+					err = decoder.Decode(&info)
+					if err != nil {
+						fmt.Println("解码失败", err.Error())
+					} else {
+						fmt.Println("解码成功")
+						fmt.Println(info)
+						logs = append(logs, info)
+					}
+				}
 			}
+			dir_infos["images"] = images
+			dir_infos["logs"] = logs
+			eachList = append(eachList, dir_infos)
 		}
-
+		locals[dir] = eachList
 	}
-	locals["images"] = images
-	locals["logs"] = logs
+
 	renderHtml(w, "list.html", locals)
 	//checkError(err, w)
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
@@ -163,6 +198,15 @@ func PathExists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func IsDir(path string) bool {
+	s, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return s.IsDir()
+
 }
 
 func renderHtml(w http.ResponseWriter, tmpl string, locals map[string]interface{}) error {
