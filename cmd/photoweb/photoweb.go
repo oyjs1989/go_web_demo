@@ -17,7 +17,7 @@ import (
 const (
 	UPLOAD_DIR    = "image"
 	TEMPLATE_DIR  = "./template"
-	HOST_ADDR     = ":8090"
+	HOST_ADDR     = ":8899"
 	PROJECT_DIR   = "/project"
 	AIPOCKET_NAME = "aipocket_new"
 )
