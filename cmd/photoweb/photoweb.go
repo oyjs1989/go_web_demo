@@ -47,7 +47,7 @@ func getDir() {
 		if !strings.Contains(temName, AIPOCKET_NAME) {
 			continue
 		}
-		temPath = PROJECT_DIR + "/" + temName + UPLOAD_DIR
+		temPath = PROJECT_DIR + "/" + temName + "/" + UPLOAD_DIR
 		imageDirs[temName] = temPath
 	}
 }
