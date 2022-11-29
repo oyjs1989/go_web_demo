@@ -6,29 +6,45 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 </head>
 <body>
-    <ol>
-        {{range $.images}}
-            <li>
-                <img src="/view?id={{.|urlquery}}" width="200px" height="100px"></img>
-            </li>
-        {{end}}
-        {{range $.logs}}
-        <li>
-            <p id="result.json">{{.|html}}<p>
-        </li>
-        {{end}}
-    </ol>
+<ol>
+    {{range $.aipocket_new_test}}
+    {{range $.images}}
+    <li>
+        <img src="/view?id={{.|urlquery}}" width="200px" height="100px"></img>
+    </li>
+    {{end}}
+    {{range $.logs}}
+    <li>
+        <p id="test_result.json">{{.|html}}
+        <p>
+    </li>
+    {{end}}
+    {{end}}
+    {{range $.aipocket_new_dev}}
+    {{range $.images}}
+    <li>
+        <img src="/view?id={{.|urlquery}}" width="200px" height="100px"></img>
+    </li>
+    {{end}}
+    {{range $.logs}}
+    <li>
+        <p id="dev_result.json">{{.|html}}
+        <p>
+    </li>
+    {{end}}
+    {{end}}
+</ol>
 
 </body>
 
 <script>
     var text = document.getElementById('result.json').innerText; //获取json格式内容
     var result = JSON.stringify(JSON.parse(text), null, 2);//将字符串转换成json对象
-    
-    document.getElementById('out_pre').innerText= result ;
+
+    document.getElementById('out_pre').innerText = result;
 
     function del(imgName) {
-        if(imgName == "") {
+        if (imgName == "") {
             console.log("图片名称不能为空");
             return;
         }
@@ -39,7 +55,7 @@
 
         $.get('/del', {
             name: imgName
-        }, function(data) {
+        }, function (data) {
             console.log(data)
         })
     }
