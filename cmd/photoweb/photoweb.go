@@ -89,12 +89,14 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	locals := make(INFO)
 	for dir, path := range imageDirs {
+		log.Println("Loading imageDirs:", path)
 		var eachList []INFO
 		fileInfoArr, err := ioutil.ReadDir(path)
 		//checkError(err, w)
 		//var listHtml string
 		check(err)
 		for _, eachDir := range fileInfoArr {
+			log.Println("Loading eachDir:", eachDir)
 			if !IsDir(eachDir.Name()) {
 				continue
 			}
@@ -102,6 +104,7 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 			images := []string{}
 			var logs []Result
 			for _, fileInfo := range fileInfoArr {
+				log.Println("Loading fileInfo:", fileInfo)
 				if strings.Contains(fileInfo.Name(), "jpg") {
 					images = append(images, fileInfo.Name())
 				}
