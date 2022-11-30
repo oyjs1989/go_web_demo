@@ -103,6 +103,7 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	getDir()
+	fmt.Print(imageDirs)
 	renderHtml(w, "list.html", imageDirs)
 	//checkError(err, w)
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
