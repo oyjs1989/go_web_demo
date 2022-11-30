@@ -15,17 +15,15 @@ import (
 )
 
 const (
-	UPLOAD_DIR    = "image"
-	TEMPLATE_DIR  = "./template"
-	HOST_ADDR     = ":8899"
-	PROJECT_DIR   = "/project"
-	AIPOCKET_NAME = "aipocket_new"
+	TEMPLATE_DIR = "./template"
+	HOST_ADDR    = ":8899"
+	PROJECT_DIR  = "/project"
 )
 
 type INFO map[string]interface{}
 
 var templates = make(map[string]*template.Template)
-var imageDirs = make(map[string]string)
+var imageDirs = make(map[string]map[string][]string)
 
 type Result struct {
 	Code      int    `json:"code"`
@@ -39,16 +37,34 @@ type Result struct {
 }
 
 func getDir() {
+	const project_name = "aipocket"
+	const image_dir = "image"
+	const model_type = "request_mark_cards_model_recognition"
+
 	fileInfoArr, err := ioutil.ReadDir(PROJECT_DIR)
 	check(err)
-	var temName, temPath string
+	var temName, temPath, logPath, timestampDirName string
+	var files []string
 	for _, fileInfo := range fileInfoArr {
 		temName = fileInfo.Name()
-		if !strings.Contains(temName, AIPOCKET_NAME) {
+		if !strings.Contains(temName, project_name) {
 			continue
 		}
-		temPath = PROJECT_DIR + "/" + temName + "/" + UPLOAD_DIR
-		imageDirs[temName] = temPath
+		// 项目下面
+		temPath = PROJECT_DIR + "/" + temName + "/" + image_dir + "/" + model_type
+		imageInfoArr, _ := ioutil.ReadDir(PROJECT_DIR)
+		imageDirs[temName] = map[string][]string{}
+		for _, timestampDir := range imageInfoArr {
+			// 时间戳文件夹
+			timestampDirName = timestampDir.Name()
+			logPath = temPath + "/" + timestampDirName
+			logsInfoArr, _ := ioutil.ReadDir(logPath)
+			files = make([]string, len(logsInfoArr))
+			for _, eachFile := range logsInfoArr {
+				files = append(files, logPath+"/"+eachFile.Name())
+			}
+			imageDirs[temName][timestampDirName] = files
+		}
 	}
 }
 
