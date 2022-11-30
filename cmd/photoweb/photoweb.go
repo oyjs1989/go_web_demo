@@ -102,9 +102,8 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 }
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
-	locals := make(INFO)
-	locals[dir] = eachList
-	renderHtml(w, "list.html", locals)
+	getDir()
+	renderHtml(w, "list.html", imageDirs)
 	//checkError(err, w)
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
 }
@@ -155,7 +154,7 @@ func IsDir(path string) bool {
 
 }
 
-func renderHtml(w http.ResponseWriter, tmpl string, locals map[string]interface{}) error {
+func renderHtml(w http.ResponseWriter, tmpl string, locals map[string]map[string][]string) error {
 	//t, err := template.ParseFiles("template/" + tmpl + ".html")
 	//if err != nil {
 	//	return err
