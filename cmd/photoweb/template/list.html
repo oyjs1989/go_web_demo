@@ -10,7 +10,7 @@
     {{range $.aipocket_new_test}}
     {{range $.images}}
     <li>
-        <img src="/view?id={{.|urlquery}}" width="200px" height="100px"></img>
+        <img src="/image?id={{.|urlquery}}" width="200px" height="100px"></img>
     </li>
     {{end}}
     {{range $.logs}}
@@ -23,7 +23,7 @@
     {{range $.aipocket_new_dev}}
     {{range $.images}}
     <li>
-        <img src="/view?id={{.|urlquery}}" width="200px" height="100px"></img>
+        <img src="/log?id={{.|urlquery}}" width="200px" height="100px"></img>
     </li>
     {{end}}
     {{range $.logs}}

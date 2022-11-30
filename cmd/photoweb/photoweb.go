@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -156,56 +155,30 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
 }
 
-func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		renderHtml(w, "upload.html", nil)
-	}
-
-	if r.Method == "POST" {
-		f, h, err := r.FormFile("image")
-		check(err)
-
-		filename := h.Filename
-		defer f.Close()
-		t, err := os.Create(UPLOAD_DIR + "/" + filename)
-		check(err)
-		defer t.Close()
-
-		_, err = io.Copy(t, f)
-		check(err)
-
-		http.Redirect(w, r, "/view?id="+filename, http.StatusFound)
-	}
-}
-
-func viewHandler(w http.ResponseWriter, r *http.Request) {
+func imageHandler(w http.ResponseWriter, r *http.Request) {
 	imageId := r.FormValue("id")
-	imagePath := UPLOAD_DIR + "/" + imageId
+	imagePath := imageId
 
 	if exists := isExists(imagePath); !exists {
 		http.NotFound(w, r)
 		return
 	}
-
 	w.Header().Set("Content-Type", "image")
 	http.ServeFile(w, r, imagePath)
 }
 
-func deleteHandler(w http.ResponseWriter, r *http.Request) {
-
-	name := r.FormValue("name")
-	fmt.Println("Will delete: ", UPLOAD_DIR+"/"+name)
-
-	pathName := UPLOAD_DIR + "/" + name
-	_, err := PathExists(pathName)
+func logHandler(w http.ResponseWriter, r *http.Request) {
+	logId := r.FormValue("id")
+	file, err := os.Open(logId)
 	check(err)
-
-	if err := os.Remove(pathName); err != nil {
-		check(err)
-	}
-	fmt.Println("delete success!")
-	http.Redirect(w, r, "/", http.StatusFound)
-
+	defer file.Close() // 关闭文本流
+	var info Result
+	// 创建json解码器
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&info)
+	ret_json, _ := json.Marshal(info)
+	w.Header().Set("Content-Type", "application/json")
+	http.ServeFile(w, r, string(ret_json))
 }
 
 func PathExists(path string) (bool, error) {
@@ -265,9 +238,9 @@ func check(err error) {
 func main() {
 	fmt.Println("run go web server")
 	http.HandleFunc("/", safeHandler(listHandler))
-	http.HandleFunc("/del", safeHandler(deleteHandler))
-	http.HandleFunc("/view", safeHandler(viewHandler))
-	http.HandleFunc("/upload", safeHandler(uploadHandler))
+	http.HandleFunc("/log", safeHandler(logHandler))
+	http.HandleFunc("/image", safeHandler(imageHandler))
+	// http.HandleFunc("/upload", safeHandler(uploadHandler))
 	err := http.ListenAndServe(HOST_ADDR, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err.Error())
