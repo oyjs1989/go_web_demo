@@ -103,53 +103,7 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	locals := make(INFO)
-	for dir, path := range imageDirs {
-		log.Println("Loading imageDirs:", path)
-		var eachList []INFO
-		fileInfoArr, err := ioutil.ReadDir(path)
-		//checkError(err, w)
-		//var listHtml string
-		check(err)
-		for _, eachDir := range fileInfoArr {
-			log.Println("Loading eachDir:", eachDir)
-			if !IsDir(eachDir.Name()) {
-				continue
-			}
-			dir_infos := make(INFO)
-			images := []string{}
-			var logs []Result
-			for _, fileInfo := range fileInfoArr {
-				log.Println("Loading fileInfo:", fileInfo)
-				if strings.Contains(fileInfo.Name(), "jpg") {
-					images = append(images, fileInfo.Name())
-				}
-				if strings.Contains(fileInfo.Name(), "log") {
-					file, err := os.Open(UPLOAD_DIR + "/" + fileInfo.Name())
-					if err != nil {
-						fmt.Println("文件打开失败 = ", err)
-						continue
-					}
-					defer file.Close() // 关闭文本流
-					var info Result
-					// 创建json解码器
-					decoder := json.NewDecoder(file)
-					err = decoder.Decode(&info)
-					if err != nil {
-						fmt.Println("解码失败", err.Error())
-					} else {
-						fmt.Println("解码成功")
-						fmt.Println(info)
-						logs = append(logs, info)
-					}
-				}
-			}
-			dir_infos["images"] = images
-			dir_infos["logs"] = logs
-			eachList = append(eachList, dir_infos)
-		}
-		locals[dir] = eachList
-	}
-
+	locals[dir] = eachList
 	renderHtml(w, "list.html", locals)
 	//checkError(err, w)
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
