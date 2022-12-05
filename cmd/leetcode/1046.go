@@ -4,6 +4,6 @@ func lastStoneWeight(stones []int) int {
 
 }
 
-func main() {
+func test_main() {
 
 }
