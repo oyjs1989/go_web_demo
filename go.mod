@@ -1,4 +1,4 @@
-module Armstrong
+module armstrong
 
 go 1.19
 
