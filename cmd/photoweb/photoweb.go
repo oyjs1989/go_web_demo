@@ -35,10 +35,23 @@ type Result struct {
 	ExecTime float64 `json:"exec_time"`
 }
 
+func readJsonFile(filePaht string) string {
+	file, err := os.Open(filePaht)
+	check(err)
+	defer file.Close() // 关闭文本流
+	var info Result
+	// 创建json解码器
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&info)
+	ret_json, _ := json.Marshal(info)
+	return string(ret_json)
+}
+
 func getDir() {
 	const project_name = "aipocket_new"
 	const image_dir = "image"
 	const model_type = "request_mark_cards_model_recognition"
+	const logName = "log"
 
 	fileInfoArr, err := ioutil.ReadDir(PROJECT_DIR)
 	check(err)
@@ -60,7 +73,11 @@ func getDir() {
 			logsInfoArr, _ := ioutil.ReadDir(logPath)
 			files = make([]string, len(logsInfoArr))
 			for _, eachFile := range logsInfoArr {
-				files = append(files, logPath+"/"+eachFile.Name())
+				var fileName = eachFile.Name()
+				if !strings.Contains(fileName, logName) {
+					fileName = readJsonFile(logPath + "/" + fileName)
+				}
+				files = append(files, logPath+"/"+fileName)
 			}
 			imageDirs[temName][timestampDirName] = files
 		}
@@ -167,8 +184,8 @@ func renderHtml(w http.ResponseWriter, tmpl string, locals map[string]map[string
 	//return err
 	err := templates[tmpl].Execute(w, locals)
 	if err != nil {
-		      http.Error(w, err.Error(), http.StatusInternalServerError)
-		        }
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	return err
 
 }

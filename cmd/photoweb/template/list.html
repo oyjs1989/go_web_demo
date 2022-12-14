@@ -12,7 +12,7 @@
     <li>
     {{range $file := $files }}
     {{if contains $file ".jpg"}}
-    <div><img src="/image?id={{.|urlquery}}" width="100px" height="200px"></div>
+    <div><img src="/image?id={{.|urlquery}}" style="max-width:100%;overflow:hidden;"></div>
     {{else}}
     <p id="result.json">{{.|html}}<p>
     {{end}}
