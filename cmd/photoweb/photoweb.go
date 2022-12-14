@@ -82,7 +82,7 @@ func getTemplate() {
 			"contains":  strings.Contains,
 			"hasPrefix": strings.HasPrefix,
 			"hasSuffix": strings.HasSuffix}
-		t := template.Must(template.New("list.gohtml").Funcs(funcs).ParseFiles(temPath))
+		t := template.Must(template.New(temName).Funcs(funcs).ParseFiles(temPath))
 		templates[temName] = t
 	}
 }
@@ -107,7 +107,6 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	getDir()
-	fmt.Print(imageDirs)
 	renderHtml(w, "list.html", imageDirs)
 	//checkError(err, w)
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
@@ -167,6 +166,9 @@ func renderHtml(w http.ResponseWriter, tmpl string, locals map[string]map[string
 	//err = t.Execute(w, locals)
 	//return err
 	err := templates[tmpl].Execute(w, locals)
+	if err != nil {
+		      http.Error(w, err.Error(), http.StatusInternalServerError)
+		        }
 	return err
 
 }
