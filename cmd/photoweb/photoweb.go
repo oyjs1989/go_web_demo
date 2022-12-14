@@ -49,17 +49,20 @@ func getDir() {
 		if !strings.Contains(temName, project_name) {
 			continue
 		}
+		fmt.Println(temName)
 		// 项目下面
 		temPath = PROJECT_DIR + "/" + temName + "/" + image_dir + "/" + model_type
-		imageInfoArr, _ := ioutil.ReadDir(PROJECT_DIR)
+		imageInfoArr, _ := ioutil.ReadDir(temPath)
 		imageDirs[temName] = map[string][]string{}
 		for _, timestampDir := range imageInfoArr {
 			// 时间戳文件夹
+			fmt.Println(timestampDir)
 			timestampDirName = timestampDir.Name()
 			logPath = temPath + "/" + timestampDirName
 			logsInfoArr, _ := ioutil.ReadDir(logPath)
 			files = make([]string, len(logsInfoArr))
 			for _, eachFile := range logsInfoArr {
+				fmt.Println(eachFile)
 				files = append(files, logPath+"/"+eachFile.Name())
 			}
 			imageDirs[temName][timestampDirName] = files
