@@ -9,17 +9,16 @@
 <ol>
     {{range $env,$envinfo := .}}
     {{range $dirName,$files := $envinfo}}
+    <li>
     {{range $file := $files }}
     {{if contains $file ".jpg"}}
-    <li><img src="/image?id={{.|urlquery}}" width="200px" height="100px"></li>
+    <div><img src="/image?id={{.|urlquery}}" width="100px" height="200px"></div>
     {{else}}
-    <li><p id="test_result.json">{{.|html}}
-        <p></li>
+    <p id="result.json">{{.|html}}<p>
     {{end}}
     {{end}}
-
+    </li>
     {{end}}
-
     {{end}}
 </ol>
 
