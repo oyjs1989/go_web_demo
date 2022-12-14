@@ -74,10 +74,12 @@ func getDir() {
 			files = make([]string, len(logsInfoArr))
 			for _, eachFile := range logsInfoArr {
 				var fileName = eachFile.Name()
-				if !strings.Contains(fileName, logName) {
+				if strings.Contains(fileName, logName) {
 					fileName = readJsonFile(logPath + "/" + fileName)
+				} else {
+					fileName = logPath + "/" + fileName
 				}
-				files = append(files, logPath+"/"+fileName)
+				files = append(files, fileName)
 			}
 			imageDirs[temName][timestampDirName] = files
 		}
