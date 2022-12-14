@@ -15,7 +15,7 @@ import (
 
 const (
 	TEMPLATE_DIR = "./template"
-	HOST_ADDR    = ":8899"
+	HOST_ADDR    = ":5000"
 	PROJECT_DIR  = "/project"
 )
 
@@ -36,7 +36,7 @@ type Result struct {
 }
 
 func getDir() {
-	const project_name = "aipocket"
+	const project_name = "aipocket_new"
 	const image_dir = "image"
 	const model_type = "request_mark_cards_model_recognition"
 
