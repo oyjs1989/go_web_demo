@@ -82,8 +82,7 @@ func getTemplate() {
 			"contains":  strings.Contains,
 			"hasPrefix": strings.HasPrefix,
 			"hasSuffix": strings.HasSuffix}
-		t := template.Must(template.ParseFiles(temPath))
-		t.Funcs(funcs)
+		t := template.Must(template.New("list.gohtml").Funcs(funcs).ParseFiles(temPath))
 		templates[temName] = t
 	}
 }
