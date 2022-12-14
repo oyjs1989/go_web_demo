@@ -4,21 +4,28 @@
     <meta charset="UTF-8">
     <title>List</title>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <style>
+        div {
+            margin: 20px 20px;
+            padding: 20px 20px;
+            border: 1px solid red;
+        }
+    </style>
 </head>
 <body>
 <ol>
     {{range $env,$envinfo := .}}
-    {{range $dirName,$files := $envinfo}}
-    <li><div>
-    {{range $file := $files }}
-    {{if contains $file ".jpg"}}
-    <img src="/image?id={{.|urlquery}}" style="max-width:100%;overflow:hidden;">
-    {{else}}
-    <p id="result.json">{{.|html}}<p>
-    {{end}}
-    {{end}}
-    </div></li>
-    {{end}}
+        {{range $dirName,$files := $envinfo}}
+            <li><p>{{$dirName|html}}<p><div class="">
+            {{range $file := $files }}
+                {{if contains $file ".jpg"}}
+                <img src="/image?id={{$file|urlquery}}" style="max-width:100%;overflow:hidden;">
+                    {{else}}
+                <p id="result.json">{{$file|html}}<p>
+                {{end}}
+            {{end}}
+            </div></li>
+        {{end}}
     {{end}}
 </ol>
 
@@ -26,26 +33,29 @@
 
 <script>
     var text = document.getElementById('result.json').innerText; //获取json格式内容
-    var result = JSON.stringify(JSON.parse(text), null, 2);//将字符串转换成json对象
+    var obj = JSON.stringify(JSON.parse(text), null, 3); //将字符串转换成json对象
 
-    document.getElementById('out_pre').innerText = result;
-
-    function del(imgName) {
-        if (imgName == "") {
-            console.log("图片名称不能为空");
-            return;
-        }
-        console.log(imgName)
-        var data = {
-            name: imgName
-        };
-
-        $.get('/del', {
-            name: imgName
-        }, function (data) {
-            console.log(data)
-        })
+    // 2. 带高亮的输出
+    function highLight(json){
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                } else {
+                    cls = 'string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'boolean';
+            } else if (/null/.test(match)) {
+                cls = 'null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
     }
+
+    document.getElementById('result.json').innerHTML = highLight(str);
 
 </script>
 

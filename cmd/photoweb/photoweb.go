@@ -52,6 +52,7 @@ func getDir() {
 	const image_dir = "image"
 	const model_type = "request_mark_cards_model_recognition"
 	const logName = "log"
+	const ipynb = "ipynb_checkpoints"
 
 	fileInfoArr, err := ioutil.ReadDir(PROJECT_DIR)
 	check(err)
@@ -76,6 +77,8 @@ func getDir() {
 				var fileName = eachFile.Name()
 				if strings.Contains(fileName, logName) {
 					fileName = readJsonFile(logPath + "/" + fileName)
+				} else if strings.Contains(fileName, ipynb) {
+					continue
 				} else {
 					fileName = logPath + "/" + fileName
 				}
