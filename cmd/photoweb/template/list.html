@@ -7,31 +7,19 @@
 </head>
 <body>
 <ol>
-    {{range $.aipocket_new_test}}
-    {{range $.images}}
-    <li>
-        <img src="/image?id={{.|urlquery}}" width="200px" height="100px"></img>
-    </li>
-    {{end}}
-    {{range $.logs}}
-    <li>
-        <p id="test_result.json">{{.|html}}
-        <p>
-    </li>
+    {{range $env,$envinfo := .}}
+    {{range $dirName,$files := $envinfo}}
+    {{range $file := $files }}
+    {{if contains $file ".jpg"}}
+    <li><img src="/image?id={{.|urlquery}}" width="200px" height="100px"></li>
+    {{else}}
+    <li><p id="test_result.json">{{.|html}}
+        <p></li>
     {{end}}
     {{end}}
-    {{range $.aipocket_new_dev}}
-    {{range $.images}}
-    <li>
-        <img src="/log?id={{.|urlquery}}" width="200px" height="100px"></img>
-    </li>
+
     {{end}}
-    {{range $.logs}}
-    <li>
-        <p id="dev_result.json">{{.|html}}
-        <p>
-    </li>
-    {{end}}
+
     {{end}}
 </ol>
 
