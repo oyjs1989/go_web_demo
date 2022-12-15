@@ -17,7 +17,7 @@ func (fis ByModTime) Swap(i, j int) {
 }
 
 func (fis ByModTime) Less(i, j int) bool {
-	return fis[i].ModTime().Before(fis[j].ModTime())
+	return fis[j].ModTime().Before(fis[i].ModTime())
 }
 
 func SortFile(path string) (files ByModTime) {
