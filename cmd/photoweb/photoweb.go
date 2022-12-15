@@ -17,7 +17,7 @@ import (
 const (
 	TEMPLATE_DIR = "./template"
 	HOST_ADDR    = ":5000"
-	PROJECT_DIR  = "/project"
+	PROJECT_DIR  = "C:\\Users\\Administrator\\Desktop"
 )
 
 type INFO map[string]interface{}
@@ -26,8 +26,8 @@ var templates = make(map[string]*template.Template)
 var imageDirs = make(map[string][]ImageInfo)
 
 type ImageInfo struct {
-	dirName string
-	files   []string
+	DirName string
+	Files   []string
 }
 
 type Result struct {
@@ -99,7 +99,6 @@ func getDir() {
 	fileInfoArr, err := ioutil.ReadDir(PROJECT_DIR)
 	check(err)
 	var temName, temPath, logPath, timestampDirName string
-	var imageInfo ImageInfo
 	for _, fileInfo := range fileInfoArr {
 		temName = fileInfo.Name()
 		if !strings.Contains(temName, project_name) {
@@ -112,7 +111,7 @@ func getDir() {
 		for _, timestampDir := range imageInfoArr {
 			// 时间戳文件夹
 			timestampDirName = timestampDir.Name()
-			imageInfo.dirName = timestampDirName
+			imageInfo := ImageInfo{DirName: timestampDirName}
 			logPath = temPath + "/" + timestampDirName
 			logsInfoArr, _ := ioutil.ReadDir(logPath)
 			for _, eachFile := range logsInfoArr {
@@ -124,7 +123,7 @@ func getDir() {
 				} else {
 					fileName = logPath + "/" + fileName
 				}
-				imageInfo.files = append(imageInfo.files, fileName)
+				imageInfo.Files = append(imageInfo.Files, fileName)
 			}
 			imageDirs[temName] = append(imageDirs[temName], imageInfo)
 		}
