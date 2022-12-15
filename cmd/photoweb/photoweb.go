@@ -17,7 +17,7 @@ import (
 const (
 	TEMPLATE_DIR = "./template"
 	HOST_ADDR    = ":5000"
-	PROJECT_DIR  = "C:\\Users\\Administrator\\Desktop"
+	PROJECT_DIR  = "/project"
 )
 
 type INFO map[string]interface{}
