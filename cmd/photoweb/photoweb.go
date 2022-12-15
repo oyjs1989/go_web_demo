@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"runtime/debug"
+	"sort"
 	"strings"
 )
 
@@ -35,6 +36,41 @@ type Result struct {
 	ExecTime float64 `json:"exec_time"`
 }
 
+type ByModTime []os.FileInfo
+
+func (fis ByModTime) Len() int {
+	return len(fis)
+}
+
+func (fis ByModTime) Swap(i, j int) {
+	fis[i], fis[j] = fis[j], fis[i]
+}
+
+func (fis ByModTime) Less(i, j int) bool {
+	return fis[i].ModTime().Before(fis[j].ModTime())
+}
+
+func SortFile(path string) (files ByModTime) {
+	f, err := os.Open(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fis, err := f.Readdir(-1)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer f.Close()
+	files = make(ByModTime, len(fis)+10)
+	j := 0
+	for _, v := range fis {
+		files[j] = v
+		j++
+	}
+	files = files[:j]
+	sort.Sort(ByModTime(files))
+	return
+}
+
 func readJsonFile(filePaht string) string {
 	file, err := os.Open(filePaht)
 	check(err)
@@ -54,8 +90,7 @@ func getDir() {
 	const logName = "log"
 	const ipynb = "ipynb_checkpoints"
 
-	fileInfoArr, err := ioutil.ReadDir(PROJECT_DIR)
-	check(err)
+	fileInfoArr := SortFile(PROJECT_DIR)
 	var temName, temPath, logPath, timestampDirName string
 	var files []string
 	for _, fileInfo := range fileInfoArr {
@@ -65,13 +100,13 @@ func getDir() {
 		}
 		// 项目下面
 		temPath = PROJECT_DIR + "/" + temName + "/" + image_dir + "/" + model_type
-		imageInfoArr, _ := ioutil.ReadDir(temPath)
+		imageInfoArr := SortFile(temPath)
 		imageDirs[temName] = map[string][]string{}
 		for _, timestampDir := range imageInfoArr {
 			// 时间戳文件夹
 			timestampDirName = timestampDir.Name()
 			logPath = temPath + "/" + timestampDirName
-			logsInfoArr, _ := ioutil.ReadDir(logPath)
+			logsInfoArr := SortFile(logPath)
 			files = make([]string, len(logsInfoArr))
 			for _, eachFile := range logsInfoArr {
 				var fileName = eachFile.Name()
