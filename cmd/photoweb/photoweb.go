@@ -23,7 +23,12 @@ const (
 type INFO map[string]interface{}
 
 var templates = make(map[string]*template.Template)
-var imageDirs = make(map[string]map[string][]string)
+var imageDirs = make(map[string][]ImageInfo)
+
+type ImageInfo struct {
+	dirName string
+	files   []string
+}
 
 type Result struct {
 	Code      int    `json:"code"`
@@ -51,6 +56,7 @@ func (fis ByModTime) Less(i, j int) bool {
 }
 
 func SortFile(path string) (files ByModTime) {
+	// 读取目录下的文件并按修改时间排序返回
 	f, err := os.Open(path)
 	if err != nil {
 		fmt.Println(err)
@@ -88,11 +94,12 @@ func getDir() {
 	const image_dir = "image"
 	const model_type = "request_mark_cards_model_recognition"
 	const logName = "log"
-	const ipynb = "ipynb_checkpoints"
+	const ipynb = "checkpoints"
 
-	fileInfoArr := SortFile(PROJECT_DIR)
+	fileInfoArr, err := ioutil.ReadDir(PROJECT_DIR)
+	check(err)
 	var temName, temPath, logPath, timestampDirName string
-	var files []string
+	var imageInfo ImageInfo
 	for _, fileInfo := range fileInfoArr {
 		temName = fileInfo.Name()
 		if !strings.Contains(temName, project_name) {
@@ -101,13 +108,13 @@ func getDir() {
 		// 项目下面
 		temPath = PROJECT_DIR + "/" + temName + "/" + image_dir + "/" + model_type
 		imageInfoArr := SortFile(temPath)
-		imageDirs[temName] = map[string][]string{}
+		imageDirs[temName] = []ImageInfo{}
 		for _, timestampDir := range imageInfoArr {
 			// 时间戳文件夹
 			timestampDirName = timestampDir.Name()
+			imageInfo.dirName = timestampDirName
 			logPath = temPath + "/" + timestampDirName
-			logsInfoArr := SortFile(logPath)
-			files = make([]string, len(logsInfoArr))
+			logsInfoArr, _ := ioutil.ReadDir(logPath)
 			for _, eachFile := range logsInfoArr {
 				var fileName = eachFile.Name()
 				if strings.Contains(fileName, logName) {
@@ -117,9 +124,9 @@ func getDir() {
 				} else {
 					fileName = logPath + "/" + fileName
 				}
-				files = append(files, fileName)
+				imageInfo.files = append(imageInfo.files, fileName)
 			}
-			imageDirs[temName][timestampDirName] = files
+			imageDirs[temName] = append(imageDirs[temName], imageInfo)
 		}
 	}
 }
@@ -215,13 +222,7 @@ func IsDir(path string) bool {
 
 }
 
-func renderHtml(w http.ResponseWriter, tmpl string, locals map[string]map[string][]string) error {
-	//t, err := template.ParseFiles("template/" + tmpl + ".html")
-	//if err != nil {
-	//	return err
-	//}
-	//err = t.Execute(w, locals)
-	//return err
+func renderHtml(w http.ResponseWriter, tmpl string, locals map[string][]ImageInfo) error {
 	err := templates[tmpl].Execute(w, locals)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

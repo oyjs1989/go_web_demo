@@ -15,9 +15,9 @@
 <body>
 <ol>
     {{range $env,$envinfo := .}}
-        {{range $dirName,$files := $envinfo}}
-            <li><p>{{$dirName|html}}<p><div class="">
-            {{range $file := $files }}
+        {{range $dirInfo := $envinfo}}
+            <li><p>{{dirInfo.dirName|html}}<p><div class="">
+            {{range $file := $dirInfo.files }}
                 {{if contains $file ".jpg"}}
                 <img src="/image?id={{$file|urlquery}}" style="max-width:100%;overflow:hidden;">
                     {{else}}
