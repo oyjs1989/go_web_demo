@@ -20,7 +20,7 @@
                 <p>{{$dirInfo.DirName|html}}<p><div class="">
             {{range $file := $dirInfo.Files }}
                 {{if contains $file ".jpg"}}
-                <img src="/image?id={{$file|urlquery}}" style="max-width:100%;overflow:hidden;">
+                <img src="/image?id={{$file|urlquery}}" style="max-width:100%;overflow:hidden;" loading="lazy">
                     {{else}}
                 <p id="result.json">{{$file|html}}<p>
                 {{end}}
