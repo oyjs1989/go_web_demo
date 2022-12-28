@@ -1,4 +1,4 @@
-package main
+package leetcode
 
 func lastStoneWeight(stones []int) int {
 

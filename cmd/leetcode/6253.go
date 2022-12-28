@@ -1,6 +1,4 @@
-package main
-
-import "fmt"
+package leetcode
 
 func isCircularSentence(sentence string) bool {
 	if sentence[0] != sentence[len(sentence)-1] {
@@ -22,11 +20,4 @@ func isCircularSentence(sentence string) bool {
 		}
 	}
 	return true
-}
-
-func main() {
-	// fmt.Println(isCircularSentence("leetcode exercises sound delightful"))
-	fmt.Println(isCircularSentence("eetcode"))
-	fmt.Println(isCircularSentence("Leetcode is cool"))
-	fmt.Println(isCircularSentence("MuFoevIXCZzrpXeRmTssj lYSW U jM"))
 }
