@@ -11,6 +11,7 @@ import (
 	"path"
 	"runtime/debug"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -18,12 +19,12 @@ const (
 	TEMPLATE_DIR = "./template"
 	HOST_ADDR    = ":5000"
 	PROJECT_DIR  = "/project"
+	PAGE_SIZE    = 100
 )
 
 type INFO map[string]interface{}
 
 var templates = make(map[string]*template.Template)
-var imageDirs = make(map[string][]ImageInfo)
 
 type ImageInfo struct {
 	DirName string
@@ -39,6 +40,12 @@ type Result struct {
 		Label string  `json:"label"`
 	} `json:"data"`
 	ExecTime float64 `json:"exec_time"`
+}
+
+type PageInfo struct {
+	CurrentPage int
+	TotalPage   []int
+	imageInfo   *map[string][]ImageInfo
 }
 
 type ByModTime []os.FileInfo
@@ -89,7 +96,7 @@ func readJsonFile(filePaht string) string {
 	return string(ret_json)
 }
 
-func getDir() {
+func getDir(pageId int) *PageInfo {
 	const project_name = "aipocket_new"
 	const image_dir = "image"
 	const model_type = "request_mark_cards_model_recognition"
@@ -99,6 +106,8 @@ func getDir() {
 	fileInfoArr, err := ioutil.ReadDir(PROJECT_DIR)
 	check(err)
 	var temName, temPath, logPath, timestampDirName string
+	total := 0
+	var imageDirs = make(map[string][]ImageInfo)
 	for _, fileInfo := range fileInfoArr {
 		temName = fileInfo.Name()
 		if !strings.Contains(temName, project_name) {
@@ -108,26 +117,34 @@ func getDir() {
 		temPath = PROJECT_DIR + "/" + temName + "/" + image_dir + "/" + model_type
 		imageInfoArr := SortFile(temPath)
 		imageDirs[temName] = []ImageInfo{}
-		for _, timestampDir := range imageInfoArr {
-			// 时间戳文件夹
-			timestampDirName = timestampDir.Name()
-			imageInfo := ImageInfo{DirName: timestampDirName}
-			logPath = temPath + "/" + timestampDirName
-			logsInfoArr, _ := ioutil.ReadDir(logPath)
-			for _, eachFile := range logsInfoArr {
-				var fileName = eachFile.Name()
-				if strings.Contains(fileName, logName) {
-					fileName = readJsonFile(logPath + "/" + fileName)
-				} else if strings.Contains(fileName, ipynb) {
-					continue
-				} else {
-					fileName = logPath + "/" + fileName
+		total += len(imageInfoArr)
+		for index, timestampDir := range imageInfoArr {
+			if index >= pageId*PAGE_SIZE && index < (pageId+1)*PAGE_SIZE {
+				// 时间戳文件夹
+				timestampDirName = timestampDir.Name()
+				imageInfo := ImageInfo{DirName: timestampDirName}
+				logPath = temPath + "/" + timestampDirName
+				logsInfoArr, _ := ioutil.ReadDir(logPath)
+				for _, eachFile := range logsInfoArr {
+					var fileName = eachFile.Name()
+					if strings.Contains(fileName, logName) {
+						fileName = readJsonFile(logPath + "/" + fileName)
+					} else if strings.Contains(fileName, ipynb) {
+						continue
+					} else {
+						fileName = logPath + "/" + fileName
+					}
+					imageInfo.Files = append(imageInfo.Files, fileName)
 				}
-				imageInfo.Files = append(imageInfo.Files, fileName)
+				imageDirs[temName] = append(imageDirs[temName], imageInfo)
 			}
-			imageDirs[temName] = append(imageDirs[temName], imageInfo)
 		}
 	}
+	totalPage := []int{}
+	for i := 0; i < total/PAGE_SIZE; i++ {
+		totalPage = append(totalPage, i)
+	}
+	return &PageInfo{CurrentPage: pageId, TotalPage: totalPage, imageInfo: &imageDirs}
 }
 
 func getTemplate() {
@@ -152,7 +169,7 @@ func getTemplate() {
 
 func init() {
 	getTemplate()
-	getDir()
+	//getDir()
 }
 
 func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
@@ -169,22 +186,25 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 }
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
-	getDir()
-	renderHtml(w, "list.html", imageDirs)
+	// 把字符串转换成int类型
+	pageId, err := strconv.Atoi(r.FormValue("page"))
+	if err != nil || pageId < 1 {
+		pageId = 1
+	}
+	pageInfo := getDir(pageId)
+	renderHtml(w, "list.html", pageInfo)
 	//checkError(err, w)
 	//io.WriteString(w, "<html><body><ol>"+listHtml+"</ol></body></html>")
 }
 
 func imageHandler(w http.ResponseWriter, r *http.Request) {
 	imageId := r.FormValue("id")
-	imagePath := imageId
-
-	if exists := isExists(imagePath); !exists {
+	if exists := isExists(imageId); !exists {
 		http.NotFound(w, r)
 		return
 	}
 	w.Header().Set("Content-Type", "image")
-	http.ServeFile(w, r, imagePath)
+	http.ServeFile(w, r, imageId)
 }
 
 func logHandler(w http.ResponseWriter, r *http.Request) {
@@ -221,7 +241,7 @@ func IsDir(path string) bool {
 
 }
 
-func renderHtml(w http.ResponseWriter, tmpl string, locals map[string][]ImageInfo) error {
+func renderHtml(w http.ResponseWriter, tmpl string, locals *PageInfo) error {
 	err := templates[tmpl].Execute(w, locals)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -14,7 +14,7 @@
 </head>
 <body>
 <ol>
-    {{range $env,$envinfo := .}}
+    {{range $env,$envinfo := .imageInfo}}
         {{range $dirInfo := $envinfo}}
             <li>
                 <p>{{$dirInfo.DirName|html}}<p><div class="">
@@ -29,7 +29,11 @@
         {{end}}
     {{end}}
 </ol>
-
+{{range $pageId := .TotalPage}}
+<li class="page">
+    <span><a href="/list/id={{.$pageId}}" title="Go to page {{.$pageId}} ">$pageId</a></span>
+</li>
+{{end}}
 </body>
 
 <script>
