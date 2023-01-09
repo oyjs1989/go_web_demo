@@ -18,7 +18,7 @@ import (
 const (
 	TEMPLATE_DIR = "./template"
 	HOST_ADDR    = ":5000"
-	PROJECT_DIR  = "D:/"
+	PROJECT_DIR  = "/project"
 	PAGE_SIZE    = 100
 )
 
