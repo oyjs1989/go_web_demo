@@ -10,33 +10,64 @@
             padding: 20px 20px;
             border: 1px solid red;
         }
+
+        ul.pagination {
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul.pagination li {display: inline;}
+
+        ul.pagination li a {
+            color: black;
+            float: left;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background-color .3s;
+            border: 1px solid #ddd;
+        }
+
+        ul.pagination li a.active {
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #4CAF50;
+        }
+
+        ul.pagination li a:hover:not(.active) {background-color: #ddd;}
     </style>
 </head>
 <body>
 <ol>
-    {{range $env,$envinfo := .imageInfo}}
-        {{range $dirInfo := $envinfo}}
-            <li>
-                <p>{{$dirInfo.DirName|html}}<p><div class="">
+    {{range $env,$envinfo := .ImageInfos}}
+    {{range $dirInfo := $envinfo}}
+    <li>
+        <p>{{$dirInfo.DirName|html}}
+        <p>
+        <div class="">
             {{range $file := $dirInfo.Files }}
-                {{if contains $file ".jpg"}}
-                <img src="/image?id={{$file|urlquery}}" style="max-width:100%;overflow:hidden;" loading="lazy">
-                    {{else}}
-                <p id="result.json">{{$file|html}}<p>
+            {{if contains $file ".jpg"}}
+            <img src="/image?id={{$file|urlquery}}" style="max-width:100%;overflow:hidden;" loading="lazy">
+            {{else}}
+            <p id="result.json">{{$file|html}}
+            <p>
                 {{end}}
-            {{end}}
-            </div></li>
-        {{end}}
+                {{end}}
+        </div>
+    </li>
+    {{end}}
     {{end}}
 </ol>
-{{range $pageId := .TotalPage}}
-<li class="page">
-    <span><a href="/list/id={{.$pageId}}" title="Go to page {{.$pageId}} ">{{$pageId}}</a></span>
-</li>
-{{end}}
+<ul class="pagination">
+    {{range $pageId := .TotalPages}}
+    <li class="page"><span><a href='/list?id={{$pageId}}' title='Go to page {{$pageId}}' id="{{$pageId}}">{{$pageId}}</a></span></li>
+    {{end}}
+</ul>
 </body>
 
 <script>
+    document.getElementById("{{.CurrentPage}}").classList.add('active'); //获取json格式内容
+
     var text = document.getElementById('result.json').innerText; //获取json格式内容
     var obj = JSON.stringify(JSON.parse(text), null, 3); //将字符串转换成json对象
 

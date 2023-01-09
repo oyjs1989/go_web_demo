@@ -18,7 +18,7 @@ import (
 const (
 	TEMPLATE_DIR = "./template"
 	HOST_ADDR    = ":5000"
-	PROJECT_DIR  = "/project"
+	PROJECT_DIR  = "D:/"
 	PAGE_SIZE    = 100
 )
 
@@ -44,8 +44,8 @@ type Result struct {
 
 type PageInfo struct {
 	CurrentPage int
-	TotalPage   []int
-	imageInfo   *map[string][]ImageInfo
+	TotalPages  []string
+	ImageInfos  *map[string][]ImageInfo
 }
 
 type ByModTime []os.FileInfo
@@ -108,6 +108,7 @@ func getDir(pageId int) *PageInfo {
 	var temName, temPath, logPath, timestampDirName string
 	total := 0
 	var imageDirs = make(map[string][]ImageInfo)
+	num := pageId - 1
 	for _, fileInfo := range fileInfoArr {
 		temName = fileInfo.Name()
 		if !strings.Contains(temName, project_name) {
@@ -119,7 +120,7 @@ func getDir(pageId int) *PageInfo {
 		imageDirs[temName] = []ImageInfo{}
 		total += len(imageInfoArr)
 		for index, timestampDir := range imageInfoArr {
-			if index >= pageId*PAGE_SIZE && index < (pageId+1)*PAGE_SIZE {
+			if index >= num*PAGE_SIZE && index < (num+1)*PAGE_SIZE {
 				// 时间戳文件夹
 				timestampDirName = timestampDir.Name()
 				imageInfo := ImageInfo{DirName: timestampDirName}
@@ -140,11 +141,11 @@ func getDir(pageId int) *PageInfo {
 			}
 		}
 	}
-	totalPage := []int{}
-	for i := 0; i < total/PAGE_SIZE; i++ {
-		totalPage = append(totalPage, i)
+	totalPage := []string{}
+	for i := 0; i < int(float64(total)/float64(PAGE_SIZE))+1; i++ {
+		totalPage = append(totalPage, strconv.Itoa(i+1))
 	}
-	return &PageInfo{CurrentPage: pageId, TotalPage: totalPage, imageInfo: &imageDirs}
+	return &PageInfo{CurrentPage: pageId, TotalPages: totalPage, ImageInfos: &imageDirs}
 }
 
 func getTemplate() {
@@ -187,7 +188,7 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	// 把字符串转换成int类型
-	pageId, err := strconv.Atoi(r.FormValue("page"))
+	pageId, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil || pageId < 1 {
 		pageId = 1
 	}
